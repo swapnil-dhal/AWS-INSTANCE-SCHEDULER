@@ -1,36 +1,46 @@
-AUTO INSTANCE SCHEDULER PROJECT
+# AUTO INSTANCE SCHEDULER PROJECT
 
-1. LOGIN TO AWS ACCOUNT WITH ROOT USER/IAM USER
+### 1. Login to AWS Account with Root User/IAM User
 
-2. CREATE A INSTANCE OF YOUR CHOICE(Linux, Windows, RedHat) //this will be the one we will be auto starting and stopping 
+### 2. Create an Instance of Your Choice (Linux, Windows, RedHat)
+   - This will be the instance we will be auto starting and stopping.
 
-3. CREATE POLICIES FOR STARTING AND STOPING EC2 INSTANCES
-   
-   //GO TO IAM ROLE, CLICK ON POLICIES
-   //CREATE POLICIY 'STARTEC2INSTANCE', SERVICES: EC2, SELECT ACTIONS -> DescribeInstances, StartInstances
-   //CREATE POLICY  'STOPEC2INSTANCE', SERVICES: EC2, SELECT ACTIONS -> DescribeInstances, StopInstances
+### 3. Create Policies for Starting and Stopping EC2 Instances
+   - Go to **IAM Role**, click on **Policies**.
+   - Create policy `StartEC2Instance`:
+     - Services: EC2
+     - Actions: `DescribeInstances`, `StartInstances`
+   - Create policy `StopEC2Instance`:
+     - Services: EC2
+     - Actions: `DescribeInstances`, `StopInstances`
 
-4. CREATE LAMBDA FUNCTION WITH NAME 'AUTOSTART EC2', CHOOSE RUNTIME PYTHON 3.12
-   //CLICK ON CLICK FUNCTION
-   //AFTER CREATION ON LAMBDA FUNCTION WE NEEED TO ATTACK POLICY WE CREATED TO THE NEW ROLE CREATED WITH THE LAMBDA FUNCTION
-   //CLICK ON CONFIGURATION -> PERMISSIONS -> CLICK ON THE ROLE NAME(NAME OF THE LAMBDA FUNCTION)
-   //CLICK ON ADD PERMISSION -> ATTACH POLICIES -> ADD THE 'STARTEC2INSTANCE' POLICY
-   //GO BACK TO LAMBDA FUNCTION PAGE -> AUTOSTART EC2 -> CODE, PASTE THE startec2.py AND DEPLOY
+### 4. Create Lambda Function 'AutoStart EC2'
+   - Choose Runtime: **Python 3.12**
+   - After creating the Lambda function, attach the policies to the role created with the Lambda function.
+     1. Go to **Configuration** -> **Permissions**.
+     2. Click on the role name (the name of the Lambda function).
+     3. Click **Add Permission** -> **Attach Policies** -> Add the `StartEC2Instance` policy.
+   - Go back to the Lambda function page -> **AutoStart EC2** -> **Code**, paste the `startec2.py` code and deploy.
 
-5. CREATE LAMBDA FUNCTION WITH NAME 'AUTOSTOP EC2', CHOOSE RUNTIME PYTHON 3.12 
-  //DO THE SAME AS WE DID IN THE PREVIOUS STEP AND ATTACH 'STOPEC2INSTANCE' POLICY TO THIS FUNCTION
-  //PASTE stopec2.py IN THE CODE SECTION.
+### 5. Create Lambda Function 'AutoStop EC2'
+   - Follow the same steps as in the previous step but attach the `StopEC2Instance` policy.
+   - Paste `stopec2.py` in the code section and deploy.
 
-6. GO TO AMAZON CLOUDWATCH, CLICK ON RULES -> CREATE RULE
-  //GIVE NAME: STARTEC2RULE, GIVE APPROPIATE DESCRIPTION ON LEAVE IT BLANK
-  //SELECT RULE TYPE: 'SCHEDULE'
-  //CLICK -> CONTINUE IN EVENTBRIDGE SCHEDULER
-  //SCROLL DOWN -> IN OCCURENCE -> CLICK ON RECURRING SCHEDULE -> SELECT YOUR TIME ZONE
-  //SELECT CRON BASED TIME TO START EC2 INSTANCE  https://docs.aws.amazon.com/lambda/latest/dg/with-eventbridge-scheduler.html
-  //EXAMPLE 10(min) 10(hour) ?(day) JAN-DEC(month) MON-SAT(day of the week) 2024(year)
-  //CLICK ON NEXT -> TEMPLATED TARGETS -> AWS LAMBDA INVOKE -> SCROLL DOWN AND CHOOSE 'AUTOSTART EC2' LAMBDA FUNCTION
-  //ACTION AFTER SCHEDULE COMPLETION -> NONE -> SCROLL DOWN CLICK ON NEXT -> SCHEDULE CREATION COMPLETE.
+### 6. Create a Rule in Amazon CloudWatch
+   1. Click on **Rules** -> **Create Rule**.
+   2. Provide a name: `StartEC2Rule` (you can also add an optional description).
+   3. Select Rule Type: **Schedule**.
+   4. Continue in **EventBridge Scheduler**.
+   5. Scroll down to **Occurrence**, and click on **Recurring Schedule** -> Select your **Time Zone**.
+   6. Set a cron-based schedule to start the EC2 instance (refer to the cron documentation: [AWS Cron Expressions](https://docs.aws.amazon.com/lambda/latest/dg/with-eventbridge-scheduler.html)).
+      - Example: `10 10 ? JAN-DEC MON-SAT 2024` (Runs at 10:10 AM every Monday through Saturday in 2024).
+   7. Click on **Next** -> **Templated Targets** -> **AWS Lambda Invoke**.
+   8. Scroll down and choose the **AutoStart EC2** Lambda function.
+   9. For **Action After Schedule Completion**: Select **None** -> Scroll down and click **Next**.
+   10. Schedule creation is now complete.
 
-7. DO THE SAME TO CREATE A SCHEDULE FOR 'STOPEC2RULE'
+### 7. Create a Schedule for 'AutoStop EC2'
+   - Repeat the same steps as above but create a rule for stopping the EC2 instance.
 
-8. WAIT FOR THE TIME AND CHECK IF THE FUNCTIONS ARE WORKING PROPERLY.
+### 8. Verify the Functions
+   - Wait for the scheduled time and check if the functions are working as expected.
